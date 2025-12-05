@@ -76,13 +76,56 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'fr-FR';
             utterance.rate = 0.9;
-            utterance.pitch = state.voice === 'female' ? 1.2 : 0.8;
+            
+            // Essayer de sélectionner une voix française selon le choix
+            const voices = window.speechSynthesis.getVoices();
+            const frenchVoices = voices.filter(voice => voice.lang.startsWith('fr'));
+            
+            if (frenchVoices.length > 0) {
+                if (state.voice === 'male') {
+                    // Chercher une voix masculine
+                    const maleVoice = frenchVoices.find(v => 
+                        v.name.toLowerCase().includes('male') || 
+                        v.name.toLowerCase().includes('thomas') ||
+                        v.name.toLowerCase().includes('henri')
+                    );
+                    if (maleVoice) {
+                        utterance.voice = maleVoice;
+                    } else {
+                        // Si pas de voix masculine, utiliser pitch bas
+                        utterance.pitch = 0.7;
+                    }
+                } else {
+                    // Chercher une voix féminine
+                    const femaleVoice = frenchVoices.find(v => 
+                        v.name.toLowerCase().includes('female') || 
+                        v.name.toLowerCase().includes('amelie') ||
+                        v.name.toLowerCase().includes('marie')
+                    );
+                    if (femaleVoice) {
+                        utterance.voice = femaleVoice;
+                    } else {
+                        // Si pas de voix féminine, utiliser pitch haut
+                        utterance.pitch = 1.3;
+                    }
+                }
+            } else {
+                // Fallback sur pitch si pas de voix française
+                utterance.pitch = state.voice === 'female' ? 1.3 : 0.7;
+            }
             
             if (onEnd) {
                 utterance.onend = onEnd;
             }
 
             window.speechSynthesis.speak(utterance);
+        }
+        
+        // Charger les voix disponibles
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = function() {
+                window.speechSynthesis.getVoices();
+            };
         }
 
         function formatOperation(op) {
