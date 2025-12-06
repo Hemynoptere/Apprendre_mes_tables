@@ -177,23 +177,28 @@
 
         // Démarrer la révision
         function startRevision() {
-            const newResults = [];
-            for (let i = 0; i <= 12; i++) {
-                const result = calculate(state.table, state.operation, i);
-                newResults.push({
-                    operation: `${state.table} ${state.operation} ${i}`,
-                    result: result,
-                    text: `${state.table} ${formatOperation(state.operation)} ${i} égale ${result}`
-                });
+        const newResults = [];
+        for (let i = 0; i <= 12; i++) {
+        // Pour la division, sauter si le résultat n'est pas un entier
+        if (state.operation === '÷') {
+            if (i === 0 || state.table % i !== 0) {
+                continue; // Sauter cette ligne
             }
-            state.results = newResults;
-            state.currentIndex = 0;
-            state.page = 'revision';
-            state.isReading = true;
-            render();
-            readNextLine();
         }
-
+        const result = calculate(state.table, state.operation, i);
+        newResults.push({
+            operation: `${state.table} ${state.operation} ${i}`,
+            result: result,
+            text: `${state.table} ${formatOperation(state.operation)} ${i} égale ${result}`
+        });
+        }
+        state.results = newResults;
+        state.currentIndex = 0;
+        state.page = 'revision';
+        state.isReading = true;
+        render();
+        readNextLine();
+    }
         // Lire la ligne suivante
         function readNextLine() {
             if (!state.isReading || state.currentIndex >= state.results.length) {
