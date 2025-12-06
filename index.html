@@ -69,57 +69,72 @@
 
         // Fonction de synthèse vocale
         function speak(text, onEnd) {
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+    }
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'fr-FR';
-            utterance.rate = 0.9;
-            
-            // Essayer de sélectionner une voix française selon le choix
-            const voices = window.speechSynthesis.getVoices();
-            const frenchVoices = voices.filter(voice => voice.lang.startsWith('fr'));
-            
-            if (frenchVoices.length > 0) {
-                if (state.voice === 'male') {
-                    // Chercher une voix masculine
-                    const maleVoice = frenchVoices.find(v => 
-                        v.name.toLowerCase().includes('male') || 
-                        v.name.toLowerCase().includes('thomas') ||
-                        v.name.toLowerCase().includes('henri')
-                    );
-                    if (maleVoice) {
-                        utterance.voice = maleVoice;
-                    } else {
-                        // Si pas de voix masculine, utiliser pitch bas
-                        utterance.pitch = 0.7;
-                    }
-                } else {
-                    // Chercher une voix féminine
-                    const femaleVoice = frenchVoices.find(v => 
-                        v.name.toLowerCase().includes('female') || 
-                        v.name.toLowerCase().includes('amelie') ||
-                        v.name.toLowerCase().includes('marie')
-                    );
-                    if (femaleVoice) {
-                        utterance.voice = femaleVoice;
-                    } else {
-                        // Si pas de voix féminine, utiliser pitch haut
-                        utterance.pitch = 1.7;
-                    }
-                }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.9;
+    
+    // Essayer de sélectionner une voix française selon le choix
+    const voices = window.speechSynthesis.getVoices();
+    const frenchVoices = voices.filter(voice => voice.lang.startsWith('fr'));
+    
+    if (frenchVoices.length > 0) {
+        if (state.voice === 'male') {
+            // VOIX MASCULINES - tous les environnements
+            const maleVoice = frenchVoices.find(v => {
+                const name = v.name.toLowerCase();
+                return name.includes('male') || 
+                       name.includes('thomas') ||    // Apple FR
+                       name.includes('henri') ||     // Apple FR
+                       name.includes('paul') ||      // Microsoft FR
+                       name.includes('claude') ||    // Google FR
+                       name.includes('bernard') ||   // Autres
+                       name.includes('homme') ||
+                       name.includes('man');
+            });
+            if (maleVoice) {
+                utterance.voice = maleVoice;
             } else {
-                // Fallback sur pitch si pas de voix française
-                utterance.pitch = state.voice === 'female' ? 1.7 : 0.7;
+                utterance.pitch = 0.6;  // Pitch grave si pas de voix masculine
             }
-            
-            if (onEnd) {
-                utterance.onend = onEnd;
+        } else {
+            // VOIX FÉMININES - tous les environnements
+            const femaleVoice = frenchVoices.find(v => {
+                const name = v.name.toLowerCase();
+                return name.includes('female') || 
+                       name.includes('amelie') ||    // Apple FR
+                       name.includes('aurélie') ||   // Apple FR
+                       name.includes('aurelie') ||   // Apple FR (sans accent)
+                       name.includes('marie') ||     // Apple FR
+                       name.includes('claire') ||    // Apple FR
+                       name.includes('julie') ||     // Microsoft FR
+                       name.includes('hortense') ||  // Microsoft FR
+                       name.includes('celine') ||    // Google FR
+                       name.includes('céline') ||    // Google FR
+                       name.includes('femme') ||
+                       name.includes('woman');
+            });
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            } else {
+                utterance.pitch = 1.8;  // Pitch aigu si pas de voix féminine
             }
-
-            window.speechSynthesis.speak(utterance);
         }
+    } else {
+        // Fallback sur pitch si pas de voix française du tout
+        utterance.pitch = state.voice === 'female' ? 1.8 : 0.6;
+    }
+    
+    if (onEnd) {
+        utterance.onend = onEnd;
+    }
+
+    window.speechSynthesis.speak(utterance);
+}
+
         
         // Charger les voix disponibles
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
