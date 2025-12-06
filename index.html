@@ -104,8 +104,8 @@
             // VOIX FÉMININES - tous les environnements
             const femaleVoice = frenchVoices.find(v => {
                 const name = v.name.toLowerCase();
-                return name.includes('aurelie') ||  // Apple FR (sans accent)
-                       name.includes('aurélie') ||  // Apple FR
+                return name.includes('aurélie') ||  // Apple FR (sans accent)
+                       name.includes('aurelie') ||  // Apple FR
                        name.includes('amelie') ||   // Apple FR
                        name.includes('female') ||   // 
                        name.includes('marie') ||     // Apple FR
@@ -120,12 +120,12 @@
             if (femaleVoice) {
                 utterance.voice = femaleVoice;
             } else {
-                utterance.pitch = 1.8;  // Pitch aigu si pas de voix féminine
+                utterance.pitch = 1.5;  // Pitch aigu si pas de voix féminine
             }
         }
     } else {
         // Fallback sur pitch si pas de voix française du tout
-        utterance.pitch = state.voice === 'male' ? 1.8 : 0.6;
+        utterance.pitch = state.voice === 'male' ? 1.5 : 0.6;
     }
     
     if (onEnd) {
