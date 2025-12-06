@@ -32,8 +32,8 @@
             page: 'welcome',
             prenom: '',
             operation: '+',
-            speed: 6000,
-            voice: 'homme',
+            speed: 2000,
+            voice: 'male',
             table: 5,
             isRandom: false,
             spinning: false,
@@ -125,7 +125,7 @@
         }
     } else {
         // Fallback sur pitch si pas de voix française du tout
-        utterance.pitch = state.voice === 'female' ? 1.8 : 0.6;
+        utterance.pitch = state.voice === 'male' ? 1.8 : 0.6;
     }
     
     if (onEnd) {
