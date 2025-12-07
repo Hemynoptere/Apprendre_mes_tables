@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -26,193 +27,192 @@
 <body>
     <div id="app"></div>
 
-    <script>
-        // État de l'application
-        let state = {
-            page: 'welcome',
-            prenom: '',
-            operation: '+',
-            speed: 5000,
-            voice: 'male',
-            table: 5,
-            isRandom: false,
-            spinning: false,
-            results: [],
-            currentIndex: 0,
-            isReading: false,
-            highlightIndex: -1
-        };
+```
+<script>
+    // État de l'application
+    let state = {
+        page: 'welcome',
+        prenom: '',
+        operation: '+',
+        speed: 5000,
+        voice: 'male',
+        table: 5,
+        isRandom: false,
+        spinning: false,
+        results: [],
+        currentIndex: 0,
+        isReading: false,
+        highlightIndex: -1
+    };
 
-        const operations = [
-            { symbol: '+', name: 'Addition' },
-            { symbol: '-', name: 'Soustraction' },
-            { symbol: '×', name: 'Multiplication' },
-            { symbol: '÷', name: 'Division' }
-        ];
+    const operations = [
+        { symbol: '+', name: 'Addition' },
+        { symbol: '-', name: 'Soustraction' },
+        { symbol: '×', name: 'Multiplication' },
+        { symbol: '÷', name: 'Division' }
+    ];
 
-        const speeds = [
-            { value: 5000, label: 'Lent' },
-            { value: 3000, label: 'Normal' },
-            { value: 1500, label: 'Rapide' }
-        ];
+    const speeds = [
+        { value: 5000, label: 'Lent' },
+        { value: 3000, label: 'Normal' },
+        { value: 1500, label: 'Rapide' }
+    ];
 
-        // Fonction pour calculer le résultat
-        function calculate(num1, op, num2) {
-            switch (op) {
-                case '+': return num1 + num2;
-                case '-': return num1 - num2;
-                case '×': return num1 * num2;
-                case '÷': return Math.floor(num1 / num2);
-                default: return 0;
-            }
+    // Fonction pour calculer le résultat
+    function calculate(num1, op, num2) {
+        switch (op) {
+            case '+': return num1 + num2;
+            case '-': return num1 - num2;
+            case '×': return num1 * num2;
+            case '÷': return Math.floor(num1 / num2);
+            default: return 0;
         }
+    }
 
-        // Fonction de synthèse vocale
-        function speak(text, onEnd) {
+    // Charger les voix disponibles - FIX pour iOS/Safari
+    let voicesLoaded = false;
+
+    function loadVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            voicesLoaded = true;
+            console.log('Voix chargées:', voices.length);
+        }
+    }
+
+    // Charger immédiatement
+    loadVoices();
+
+    // Et recharger quand les voix changent (iOS)
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    // Force le chargement après 500ms pour iOS
+    setTimeout(loadVoices, 500);
+
+    // Fonction de synthèse vocale
+    function speak(text, onEnd) {
         // Attendre que les voix soient chargées (important pour iOS)
         if (!voicesLoaded) {
-             setTimeout(() => speak(text, onEnd), 100);
-        return;
+            setTimeout(() => speak(text, onEnd), 100);
+            return;
         }
     
         if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
+            window.speechSynthesis.cancel();
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'fr-FR';
-        utterance.rate = 1;
+        utterance.rate = 0.9;
     
-    // Essayer de sélectionner une voix française selon le choix
-    const voices = window.speechSynthesis.getVoices();
-    const frenchVoices = voices.filter(voice => voice.lang.startsWith('fr'));
-    
-    if (frenchVoices.length > 0) {
-        if (state.voice === 'male') {
-            // VOIX MASCULINES - tous les environnements
-            const maleVoice = frenchVoices.find(v => {
-                const name = v.name.toLowerCase();
-                return name.includes('male') || 
-                       name.includes('thomas') ||    // Apple FR
-                       name.includes('henri') ||     // Apple FR
-                       name.includes('paul') ||      // Microsoft FR
-                       name.includes('claude') ||    // Google FR
-                       name.includes('bernard') ||   // Autres
-                       name.includes('homme') ||
-                       name.includes('man');
-            });
-            if (maleVoice) {
-                utterance.voice = maleVoice;
+        // Essayer de sélectionner une voix française selon le choix
+        const voices = window.speechSynthesis.getVoices();
+        const frenchVoices = voices.filter(voice => voice.lang.startsWith('fr'));
+        
+        if (frenchVoices.length > 0) {
+            if (state.voice === 'male') {
+                // VOIX MASCULINES - tous les environnements
+                const maleVoice = frenchVoices.find(v => {
+                    const name = v.name.toLowerCase();
+                    return name.includes('male') || 
+                           name.includes('thomas') ||    // Apple FR
+                           name.includes('henri') ||     // Apple FR
+                           name.includes('paul') ||      // Microsoft FR
+                           name.includes('claude') ||    // Google FR
+                           name.includes('bernard') ||   // Autres
+                           name.includes('homme') ||
+                           name.includes('man');
+                });
+                if (maleVoice) {
+                    utterance.voice = maleVoice;
+                } else {
+                    utterance.pitch = 0.6;  // Pitch grave si pas de voix masculine
+                }
             } else {
-                utterance.pitch = 0.6;  // Pitch grave si pas de voix masculine
+                // VOIX FÉMININES - tous les environnements
+                const femaleVoice = frenchVoices.find(v => {
+                    const name = v.name.toLowerCase();
+                    return name.includes('aurelie') ||   // Apple FR (sans accent)
+                           name.includes('aurélie') ||   // Apple FR
+                           name.includes('amelie') ||    // Apple FR
+                           name.includes('female') ||   
+                           name.includes('marie') ||     // Apple FR
+                           name.includes('claire') ||    // Apple FR
+                           name.includes('julie') ||     // Microsoft FR
+                           name.includes('hortense') ||  // Microsoft FR
+                           name.includes('celine') ||    // Google FR
+                           name.includes('céline') ||    // Google FR
+                           name.includes('femme') ||
+                           name.includes('woman');
+                });
+                if (femaleVoice) {
+                    utterance.voice = femaleVoice;
+                } else {
+                    utterance.pitch = 1.5;  // Pitch aigu si pas de voix féminine
+                }
             }
         } else {
-            // VOIX FÉMININES - tous les environnements
-            const femaleVoice = frenchVoices.find(v => {
-                const name = v.name.toLowerCase();
-                return name.includes('aurélie') ||  // Apple FR (sans accent)
-                       name.includes('aurelie') ||  // Apple FR
-                       name.includes('amelie') ||   // Apple FR
-                       name.includes('female') ||   // 
-                       name.includes('marie') ||     // Apple FR
-                       name.includes('claire') ||    // Apple FR
-                       name.includes('julie') ||     // Microsoft FR
-                       name.includes('hortense') ||  // Microsoft FR
-                       name.includes('celine') ||    // Google FR
-                       name.includes('céline') ||    // Google FR
-                       name.includes('femme') ||
-                       name.includes('woman');
-            });
-            if (femaleVoice) {
-                utterance.voice = femaleVoice;
-            } else {
-                utterance.pitch = 1;  // Pitch aigu si pas de voix féminine
-            }
+            // Fallback sur pitch si pas de voix française du tout
+            utterance.pitch = state.voice === 'female' ? 1.5 : 0.6;
         }
-    } else {
-        // Fallback sur pitch si pas de voix française du tout
-        utterance.pitch = state.voice === 'male' ? 1 : 0.6;
-    }
-    
-    if (onEnd) {
-        utterance.onend = onEnd;
-    }
-
-    window.speechSynthesis.speak(utterance);
-}
-
         
-        // Charger les voix disponibles - FIX pour iOS/Safari
-        let voicesLoaded = false;
+        if (onEnd) {
+            utterance.onend = onEnd;
+        }
 
-function loadVoices() {
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-        voicesLoaded = true;
-        console.log('Voix chargées:', voices.length);
+        window.speechSynthesis.speak(utterance);
     }
-}
 
-// Charger immédiatement
-loadVoices();
+    function formatOperation(op) {
+        const opWords = {
+            '+': 'plusse',
+            '-': 'moins',
+            '×': 'fois',
+            '÷': 'divisé par'
+        };
+        return opWords[op] || op;
+    }
 
-// Et recharger quand les voix changent (iOS)
-if (window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-}
-
-// Force le chargement après 500ms pour iOS
-setTimeout(loadVoices, 500);
-
-
-        function formatOperation(op) {
-            const opWords = {
-                '+': 'plusse',
-                '-': 'moins',
-                '×': 'fois',
-                '÷': 'divisé par'
-            };
-            return opWords[op] || op;
-        }
-
-        // Fonction pour faire tourner la roue
-        function spinWheel() {
-            state.spinning = true;
+    // Fonction pour faire tourner la roue
+    function spinWheel() {
+        state.spinning = true;
+        render();
+        
+        let spins = 0;
+        const maxSpins = 20;
+        
+        const interval = setInterval(() => {
+            state.table = Math.floor(Math.random() * 13);
             render();
+            spins++;
             
-            let spins = 0;
-            const maxSpins = 20;
-            
-            const interval = setInterval(() => {
-                state.table = Math.floor(Math.random() * 13);
+            if (spins >= maxSpins) {
+                clearInterval(interval);
+                state.spinning = false;
+                state.isRandom = true;
                 render();
-                spins++;
-                
-                if (spins >= maxSpins) {
-                    clearInterval(interval);
-                    state.spinning = false;
-                    state.isRandom = true;
-                    render();
-                }
-            }, 100);
-        }
+            }
+        }, 100);
+    }
 
-        // Démarrer la révision
-        function startRevision() {
+    // Démarrer la révision
+    function startRevision() {
         const newResults = [];
         for (let i = 0; i <= 12; i++) {
-        // Pour la division, sauter si le résultat n'est pas un entier
-        if (state.operation === '÷') {
-            if (i === 0 || state.table % i !== 0) {
-                continue; // Sauter cette ligne
+            // Pour la division, sauter si le résultat n'est pas un entier
+            if (state.operation === '÷') {
+                if (i === 0 || state.table % i !== 0) {
+                    continue; // Sauter cette ligne
+                }
             }
-        }
-        const result = calculate(state.table, state.operation, i);
-        newResults.push({
-            operation: `${state.table} ${state.operation} ${i}`,
-            result: result,
-            text: `${state.table} ${formatOperation(state.operation)} ${i} égale ${result}`
-        });
+            const result = calculate(state.table, state.operation, i);
+            newResults.push({
+                operation: `${state.table} ${state.operation} ${i}`,
+                result: result,
+                text: `${state.table} ${formatOperation(state.operation)} ${i} égale ${result}`
+            });
         }
         state.results = newResults;
         state.currentIndex = 0;
@@ -221,293 +221,296 @@ setTimeout(loadVoices, 500);
         render();
         readNextLine();
     }
-        // Lire la ligne suivante
-        function readNextLine() {
-            if (!state.isReading || state.currentIndex >= state.results.length) {
-                if (state.currentIndex === state.results.length) {
-                    setTimeout(() => {
-                        speak(`Bravo ${state.prenom} ! Maintenant répète toute la table avec moi.`, () => {
-                            setTimeout(() => rereadAll(), 1000);
-                        });
-                    }, 1000);
-                }
-                return;
-            }
 
-            const current = state.results[state.currentIndex];
-            render();
-            
-            speak(current.text.split('égale')[0], () => {
+    // Lire la ligne suivante
+    function readNextLine() {
+        if (!state.isReading || state.currentIndex >= state.results.length) {
+            if (state.currentIndex === state.results.length) {
                 setTimeout(() => {
-                    speak(`égale ${current.result}`, () => {
-                        setTimeout(() => {
-                            state.currentIndex++;
-                            render();
-                            readNextLine();
-                        }, 300);
+                    speak(`Bravo ${state.prenom} ! Maintenant répète toute la table avec moi.`, () => {
+                        setTimeout(() => rereadAll(), 1000);
                     });
-                }, state.speed);
-            });
-        }
-
-        // Relire toute la table
-        function rereadAll() {
-            let index = 0;
-            
-            function readNext() {
-                if (index < state.results.length) {
-                    state.highlightIndex = index;
-                    render();
-                    speak(state.results[index].text, () => {
-                        index++;
-                        setTimeout(readNext, 300);
-                    });
-                } else {
-                    state.highlightIndex = -1;
-                    state.isReading = false;
-                    render();
-                    speak(`Excellent ${state.prenom} ! Tu as super bien travaillé !`);
-                }
+                }, 1000);
             }
-            
-            readNext();
+            return;
         }
 
-        // Actions
-        function handleWelcomeNext() {
-            if (state.prenom.trim()) {
-                const message = `Du courage ${state.prenom} ! Je vais te présenter les tables que tu veux réviser. Tu devras dire le résultat avant qu'il ne s'affiche et à la fin répéter toute la table avec moi.`;
-                speak(message, () => {
+        const current = state.results[state.currentIndex];
+        render();
+        
+        speak(current.text.split('égale')[0], () => {
+            setTimeout(() => {
+                speak(`égale ${current.result}`, () => {
                     setTimeout(() => {
-                        state.page = 'choice';
+                        state.currentIndex++;
                         render();
-                    }, 500);
+                        readNextLine();
+                    }, 300);
                 });
+            }, state.speed);
+        });
+    }
+
+    // Relire toute la table
+    function rereadAll() {
+        let index = 0;
+        
+        function readNext() {
+            if (index < state.results.length) {
+                state.highlightIndex = index;
+                render();
+                speak(state.results[index].text, () => {
+                    index++;
+                    setTimeout(readNext, 300);
+                });
+            } else {
+                state.highlightIndex = -1;
+                state.isReading = false;
+                render();
+                speak(`Excellent ${state.prenom} ! Tu as super bien travaillé !`);
             }
         }
+        
+        readNext();
+    }
 
-        function restart() {
-            window.speechSynthesis.cancel();
-            state.currentIndex = 0;
-            state.highlightIndex = -1;
-            state.isReading = true;
-            render();
-            readNextLine();
-        }
-
-        function newChoice() {
-            window.speechSynthesis.cancel();
-            state.page = 'choice';
-            state.results = [];
-            state.currentIndex = 0;
-            state.highlightIndex = -1;
-            state.isReading = false;
-            render();
-        }
-
-        function quit() {
-            window.speechSynthesis.cancel();
-            speak(`Au revoir ${state.prenom} ! À bientôt !`, () => {
-                setTimeout(() => window.close(), 2000);
+    // Actions
+    function handleWelcomeNext() {
+        if (state.prenom.trim()) {
+            const message = `Du courage ${state.prenom} ! Je vais te présenter les tables que tu veux réviser. Tu devras dire le résultat avant qu'il ne s'affiche et à la fin répéter toute la table avec moi.`;
+            speak(message, () => {
+                setTimeout(() => {
+                    state.page = 'choice';
+                    render();
+                }, 500);
             });
         }
+    }
 
-        // Rendu de l'interface
-        function render() {
-            const app = document.getElementById('app');
+    function restart() {
+        window.speechSynthesis.cancel();
+        state.currentIndex = 0;
+        state.highlightIndex = -1;
+        state.isReading = true;
+        render();
+        readNextLine();
+    }
+
+    function newChoice() {
+        window.speechSynthesis.cancel();
+        state.page = 'choice';
+        state.results = [];
+        state.currentIndex = 0;
+        state.highlightIndex = -1;
+        state.isReading = false;
+        render();
+    }
+
+    function quit() {
+        window.speechSynthesis.cancel();
+        speak(`Au revoir ${state.prenom} ! À bientôt !`, () => {
+            setTimeout(() => window.close(), 2000);
+        });
+    }
+
+    // Rendu de l'interface
+    function render() {
+        const app = document.getElementById('app');
+        
+        if (state.page === 'welcome') {
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 p-4 flex items-center justify-center">
+                    <div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 border-8 border-rainbow">
+                        <div class="text-center mb-6">
+                            <div class="text-6xl mb-3">✨</div>
+                            <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+                                Bienvenue !
+                            </h1>
+                            <p class="text-xl text-gray-700 mb-6">
+                                Comment t'appelles-tu ?
+                            </p>
+                        </div>
+
+                        <input
+                            type="text"
+                            id="prenomInput"
+                            placeholder="Ton prénom"
+                            class="w-full text-2xl text-center p-5 border-4 border-purple-400 rounded-2xl mb-6 focus:outline-none focus:border-pink-500 transition-all"
+                            autofocus
+                        />
+
+                        <div class="flex gap-3">
+                            <button
+                                onclick="handleWelcomeNext()"
+                                class="flex-1 bg-gradient-to-r from-green-400 to-blue-500 text-white py-5 rounded-2xl font-bold text-2xl hover:from-green-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-3"
+                            >
+                                ▶ C'est parti !
+                            </button>
+                            <button
+                                onclick="window.speechSynthesis.cancel(); state.page='choice'; render();"
+                                class="px-6 bg-gradient-to-r from-orange-400 to-orange-500 text-white py-5 rounded-2xl font-bold text-xl hover:from-orange-500 hover:to-orange-600 transition-all shadow-lg"
+                            >
+                                ⏭️ Passer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
             
-            if (state.page === 'welcome') {
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 p-4 flex items-center justify-center">
-                        <div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 border-8 border-rainbow">
-                            <div class="text-center mb-6">
-                                <div class="text-6xl mb-3">✨</div>
-                                <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-                                    Bienvenue !
-                                </h1>
-                                <p class="text-xl text-gray-700 mb-6">
-                                    Comment t'appelles-tu ?
-                                </p>
+            document.getElementById('prenomInput').addEventListener('input', (e) => {
+                state.prenom = e.target.value;
+            });
+            
+            document.getElementById('prenomInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleWelcomeNext();
+            });
+        } else if (state.page === 'choice') {
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 p-2 flex items-center">
+                    <div class="max-w-2xl w-full mx-auto bg-white rounded-2xl shadow-2xl p-4 border-4 border-rainbow">
+                        <h1 class="text-2xl font-bold text-center mb-1 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            Bonjour ${state.prenom} ! 🌟
+                        </h1>
+                        <p class="text-base text-center mb-2 text-gray-600">
+                            Choisis ta table à réviser
+                        </p>
+
+                        <div class="space-y-2">
+                            <!-- Opération -->
+                            <div>
+                                <label class="block text-lg font-bold mb-1 text-purple-700">➕ Opération</label>
+                                <div class="grid grid-cols-4 gap-2" id="operationButtons"></div>
                             </div>
 
-                            <input
-                                type="text"
-                                id="prenomInput"
-                                placeholder="Ton prénom"
-                                class="w-full text-2xl text-center p-5 border-4 border-purple-400 rounded-2xl mb-6 focus:outline-none focus:border-pink-500 transition-all"
-                                autofocus
-                            />
+                            <!-- Vitesse -->
+                            <div>
+                                <label class="block text-lg font-bold mb-1 text-blue-700">⚡ Vitesse</label>
+                                <div class="grid grid-cols-3 gap-2" id="speedButtons"></div>
+                            </div>
 
-                             <div class="flex gap-3">
-                                  <button
-                                     onclick="handleWelcomeNext()"
-                                     class="flex-1 bg-gradient-to-r from-green-400 to-blue-500 text-white py-5 rounded-2xl font-bold text-2xl hover:from-green-500 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-3"
-                                   >
-                                     ▶ C'est parti !
-                                   </button>
-                                   <button
-                                      onclick="window.speechSynthesis.cancel(); state.page='choice'; render();"
-                                      class="px-6 bg-gradient-to-r from-orange-400 to-orange-500 text-white py-5 rounded-2xl font-bold text-xl hover:from-orange-500 hover:to-orange-600 transition-all shadow-lg"
-                                    >
-                                      ⏭️ Passer
+                            <!-- Voix -->
+                            <div>
+                                <label class="block text-lg font-bold mb-1 text-green-700">🎤 Voix</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="state.voice='male'; render();" class="p-2 rounded-xl text-base font-bold transition-all ${state.voice === 'male' ? 'bg-gradient-to-br from-green-400 to-teal-500 text-white shadow-xl scale-105' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'}">
+                                        👨 Homme
                                     </button>
-                              </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.getElementById('prenomInput').addEventListener('input', (e) => {
-                    state.prenom = e.target.value;
-                });
-                
-                document.getElementById('prenomInput').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') handleWelcomeNext();
-                });
-            } else if (state.page === 'choice') {
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 p-2 flex items-center">
-                        <div class="max-w-2xl w-full mx-auto bg-white rounded-2xl shadow-2xl p-4 border-4 border-rainbow">
-                            <h1 class="text-2xl font-bold text-center mb-1 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                Bonjour ${state.prenom} ! 🌟
-                            </h1>
-                            <p class="text-base text-center mb-2 text-gray-600">
-                                Choisis ta table à réviser
-                            </p>
-
-                            <div class="space-y-2">
-                                <!-- Opération -->
-                                <div>
-                                    <label class="block text-lg font-bold mb-1 text-purple-700">➕ Opération</label>
-                                    <div class="grid grid-cols-4 gap-2" id="operationButtons"></div>
+                                    <button onclick="state.voice='female'; render();" class="p-2 rounded-xl text-base font-bold transition-all ${state.voice === 'female' ? 'bg-gradient-to-br from-pink-400 to-rose-500 text-white shadow-xl scale-105' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'}">
+                                        👩 Femme
+                                    </button>
                                 </div>
+                            </div>
 
-                                <!-- Vitesse -->
-                                <div>
-                                    <label class="block text-lg font-bold mb-1 text-blue-700">⚡ Vitesse</label>
-                                    <div class="grid grid-cols-3 gap-2" id="speedButtons"></div>
-                                </div>
-
-                                <!-- Voix -->
-                                <div>
-                                    <label class="block text-lg font-bold mb-1 text-green-700">🎤 Voix</label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button onclick="state.voice='male'; render();" class="p-2 rounded-xl text-base font-bold transition-all ${state.voice === 'male' ? 'bg-gradient-to-br from-green-400 to-teal-500 text-white shadow-xl scale-105' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'}">
-                                            👨 Homme
-                                        </button>
-                                        <button onclick="state.voice='female'; render();" class="p-2 rounded-xl text-base font-bold transition-all ${state.voice === 'female' ? 'bg-gradient-to-br from-pink-400 to-rose-500 text-white shadow-xl scale-105' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'}">
-                                            👩 Femme
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Table -->
-                                <div>
-                                    <label class="block text-lg font-bold mb-1 text-purple-700">🔢 Table</label>
-                                    <div class="flex items-center gap-2">
-                                        <div class="flex-1">
-                                            <div class="text-center p-4 rounded-xl ${state.spinning ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 animate-pulse' : 'bg-gradient-to-br from-purple-200 to-pink-200'}">
-                                                <div class="text-5xl font-bold text-purple-800">${state.table}</div>
-                                            </div>
-                                            <input type="range" min="0" max="12" value="${state.table}" 
-                                                onchange="state.table=parseInt(this.value); state.isRandom=false; render();" 
-                                                class="w-full mt-1 h-2" ${state.spinning ? 'disabled' : ''} />
+                            <!-- Table -->
+                            <div>
+                                <label class="block text-lg font-bold mb-1 text-purple-700">🔢 Table</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1">
+                                        <div class="text-center p-4 rounded-xl ${state.spinning ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 animate-pulse' : 'bg-gradient-to-br from-purple-200 to-pink-200'}">
+                                            <div class="text-5xl font-bold text-purple-800">${state.table}</div>
                                         </div>
-                                        <button onclick="spinWheel()" ${state.spinning ? 'disabled' : ''} 
-                                            class="px-3 py-3 bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-xl text-base font-bold hover:from-yellow-500 hover:to-orange-600 transition-all shadow-lg whitespace-nowrap">
-                                            ${state.spinning ? '🎰' : '🎲'} Surprise!
-                                        </button>
+                                        <input type="range" min="0" max="12" value="${state.table}" 
+                                            onchange="state.table=parseInt(this.value); state.isRandom=false; render();" 
+                                            class="w-full mt-1 h-2" ${state.spinning ? 'disabled' : ''} />
                                     </div>
-                                </div>
-
-                                <!-- Boutons -->
-                                <div class="flex gap-2 pt-1">
-                                    <button onclick="startRevision()" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-xl">
-                                        ▶ C'est parti !
-                                    </button>
-                                    <button onclick="quit()" class="px-4 bg-gradient-to-br from-red-500 to-red-600 text-white py-3 rounded-xl font-bold text-base hover:from-red-600 hover:to-red-700 transition-all shadow-lg">
-                                        Quitter
+                                    <button onclick="spinWheel()" ${state.spinning ? 'disabled' : ''} 
+                                        class="px-3 py-3 bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-xl text-base font-bold hover:from-yellow-500 hover:to-orange-600 transition-all shadow-lg whitespace-nowrap">
+                                        ${state.spinning ? '🎰' : '🎲'} Surprise!
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Rendre les boutons d'opération
-                const opButtons = document.getElementById('operationButtons');
-                operations.forEach(op => {
-                    const btn = document.createElement('button');
-                    btn.innerHTML = op.symbol;
-                    btn.className = `p-3 rounded-xl text-2xl font-bold transition-all ${
-                        state.operation === op.symbol 
-                            ? 'bg-gradient-to-br from-orange-400 to-pink-500 text-white shadow-xl scale-110' 
-                            : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
-                    }`;
-                    btn.onclick = () => { state.operation = op.symbol; render(); };
-                    opButtons.appendChild(btn);
-                });
-                
-                // Rendre les boutons de vitesse
-                const speedButtons = document.getElementById('speedButtons');
-                speeds.forEach(s => {
-                    const btn = document.createElement('button');
-                    btn.innerHTML = s.label;
-                    btn.className = `p-2 rounded-xl text-base font-bold transition-all ${
-                        state.speed === s.value 
-                            ? 'bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-xl scale-105' 
-                            : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
-                    }`;
-                    btn.onclick = () => { state.speed = s.value; render(); };
-                    speedButtons.appendChild(btn);
-                });
-            } else if (state.page === 'revision') {
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gradient-to-br from-green-200 via-blue-200 to-purple-300 p-2 flex items-center">
-                        <div class="max-w-4xl w-full mx-auto bg-white rounded-2xl shadow-2xl p-2 border-2 border-rainbow">
-                            <h1 class="text-lg font-bold text-center mb-0 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Allez ${state.prenom} ! 💪
-                            </h1>
-                            <p class="text-sm text-center mb-1 text-gray-700 font-bold">
-                                Table de ${state.table} - ${operations.find(op => op.symbol === state.operation).name}
-                            </p>
 
-                            <div class="bg-gradient-to-br from-yellow-50 to-pink-50 rounded-xl p-1.5 mb-1.5 border-2 border-purple-200" style="max-height: calc(100vh - 160px); overflow-y: auto;">
-                                ${state.results.map((item, index) => `
-                                    <div class="py-0.5 px-2 mb-0.5 rounded text-sm font-bold transition-all ${
-                                        index < state.currentIndex ? 'opacity-100' :
-                                        index === state.currentIndex ? 'opacity-100 bg-yellow-200 animate-pulse border border-yellow-400' :
-                                        'opacity-30'
-                                    } ${
-                                        state.highlightIndex === index ? 'bg-gradient-to-r from-blue-300 to-purple-300 scale-100 shadow-lg border border-blue-500' : 'bg-white'
-                                    }" style="${index <= state.currentIndex ? 'visibility: visible;' : 'visibility: hidden;'}">
-                                        <span class="text-gray-800">${item.operation}</span>
-                                        ${index < state.currentIndex ? `<span class="text-blue-700"> = ${item.result}</span>` : ''}
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            <div class="flex gap-2">
-                                <button onclick="restart()" ${state.isReading ? 'disabled' : ''} 
-                                    class="flex-1 bg-gradient-to-br from-orange-500 to-red-500 text-white py-2 rounded-xl font-bold text-sm hover:from-orange-600 hover:to-red-600 transition-all shadow-lg disabled:opacity-50">
-                                    🔄 Recommencer
+                            <!-- Boutons -->
+                            <div class="flex gap-2 pt-1">
+                                <button onclick="startRevision()" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-xl">
+                                    ▶ C'est parti !
                                 </button>
-                                <button onclick="newChoice()" 
-                                    class="flex-1 bg-gradient-to-br from-blue-500 to-purple-600 text-white py-2 rounded-xl font-bold text-sm hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg">
-                                    🏠 Nouveau choix
-                                </button>
-                                <button onclick="quit()" 
-                                    class="px-3 bg-gradient-to-br from-red-500 to-red-600 text-white py-2 rounded-xl font-bold text-sm hover:from-red-600 hover:to-red-700 transition-all shadow-lg">
+                                <button onclick="quit()" class="px-4 bg-gradient-to-br from-red-500 to-red-600 text-white py-3 rounded-xl font-bold text-base hover:from-red-600 hover:to-red-700 transition-all shadow-lg">
                                     Quitter
                                 </button>
                             </div>
                         </div>
                     </div>
-                `;
-            }
-        }
+                </div>
+            `;
+            
+            // Rendre les boutons d'opération
+            const opButtons = document.getElementById('operationButtons');
+            operations.forEach(op => {
+                const btn = document.createElement('button');
+                btn.innerHTML = op.symbol;
+                btn.className = `p-3 rounded-xl text-2xl font-bold transition-all ${
+                    state.operation === op.symbol 
+                        ? 'bg-gradient-to-br from-orange-400 to-pink-500 text-white shadow-xl scale-110' 
+                        : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
+                }`;
+                btn.onclick = () => { state.operation = op.symbol; render(); };
+                opButtons.appendChild(btn);
+            });
+            
+            // Rendre les boutons de vitesse
+            const speedButtons = document.getElementById('speedButtons');
+            speeds.forEach(s => {
+                const btn = document.createElement('button');
+                btn.innerHTML = s.label;
+                btn.className = `p-2 rounded-xl text-base font-bold transition-all ${
+                    state.speed === s.value 
+                        ? 'bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-xl scale-105' 
+                        : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
+                }`;
+                btn.onclick = () => { state.speed = s.value; render(); };
+                speedButtons.appendChild(btn);
+            });
+        } else if (state.page === 'revision') {
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-green-200 via-blue-200 to-purple-300 p-2 flex items-center">
+                    <div class="max-w-4xl w-full mx-auto bg-white rounded-2xl shadow-2xl p-2 border-2 border-rainbow">
+                        <h1 class="text-lg font-bold text-center mb-0 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Allez ${state.prenom} ! 💪
+                        </h1>
+                        <p class="text-sm text-center mb-1 text-gray-700 font-bold">
+                            Table de ${state.table} - ${operations.find(op => op.symbol === state.operation).name}
+                        </p>
 
-        // Initialisation
-        render();
-    </script>
+                        <div class="bg-gradient-to-br from-yellow-50 to-pink-50 rounded-xl p-1.5 mb-1.5 border-2 border-purple-200" style="max-height: calc(100vh - 160px); overflow-y: auto;">
+                            ${state.results.map((item, index) => `
+                                <div class="py-0.5 px-2 mb-0.5 rounded text-sm font-bold transition-all ${
+                                    index < state.currentIndex ? 'opacity-100' :
+                                    index === state.currentIndex ? 'opacity-100 bg-yellow-200 animate-pulse border border-yellow-400' :
+                                    'opacity-30'
+                                } ${
+                                    state.highlightIndex === index ? 'bg-gradient-to-r from-blue-300 to-purple-300 shadow-lg border border-blue-500' : 'bg-white'
+                                }" style="${index <= state.currentIndex ? 'visibility: visible;' : 'visibility: hidden;'}">
+                                    <span class="text-gray-800">${item.operation}</span>
+                                    ${index < state.currentIndex ? `<span class="text-blue-700"> = ${item.result}</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="restart()" ${state.isReading ? 'disabled' : ''} 
+                                class="flex-1 bg-gradient-to-br from-orange-500 to-red-500 text-white py-2 rounded-xl font-bold text-sm hover:from-orange-600 hover:to-red-600 transition-all shadow-lg disabled:opacity-50">
+                                🔄 Recommencer
+                            </button>
+                            <button onclick="newChoice()" 
+                                class="flex-1 bg-gradient-to-br from-blue-500 to-purple-600 text-white py-2 rounded-xl font-bold text-sm hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg">
+                                🏠 Nouveau choix
+                            </button>
+                            <button onclick="quit()" 
+                                class="px-3 bg-gradient-to-br from-red-500 to-red-600 text-white py-2 rounded-xl font-bold text-sm hover:from-red-600 hover:to-red-700 transition-all shadow-lg">
+                                Quitter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Initialisation
+    render();
+</script>
+```
+
 </body>
 </html>
