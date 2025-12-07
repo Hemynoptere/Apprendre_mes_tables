@@ -68,7 +68,7 @@
         }
 
         // Fonction de synthèse vocale
-function speak(text, onEnd) {
+    function speak(text, onEnd) {
     // Attendre que les voix soient chargées (important pour iOS)
     if (!voicesLoaded) {
         setTimeout(() => speak(text, onEnd), 100);
