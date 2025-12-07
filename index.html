@@ -448,7 +448,7 @@
                                         index === state.currentIndex ? 'opacity-100 bg-yellow-200 animate-pulse border border-yellow-400' :
                                         'opacity-30'
                                     } ${
-                                        state.highlightIndex === index ? 'bg-gradient-to-r from-blue-300 to-purple-300 scale-105 shadow-lg border border-blue-500' : 'bg-white'
+                                        state.highlightIndex === index ? 'bg-gradient-to-r from-blue-300 to-purple-300 scale-100 shadow-lg border border-blue-500' : 'bg-white'
                                     }" style="${index <= state.currentIndex ? 'visibility: visible;' : 'visibility: hidden;'}">
                                         <span class="text-gray-800">${item.operation}</span>
                                         ${index < state.currentIndex ? `<span class="text-blue-700"> = ${item.result}</span>` : ''}
