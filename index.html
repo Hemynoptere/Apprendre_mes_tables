@@ -69,9 +69,17 @@
 
         // Fonction de synthèse vocale
         function speak(text, onEnd) {
+    // Attendre que les voix soient chargées (important pour iOS)
+    if (!voicesLoaded) {
+        setTimeout(() => speak(text, onEnd), 100);
+        return;
+    }
+    
     if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
     }
+    // ... reste du code
+
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
@@ -136,12 +144,28 @@
 }
 
         
-        // Charger les voix disponibles
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = function() {
-                window.speechSynthesis.getVoices();
-            };
-        }
+        // Charger les voix disponibles - FIX pour iOS/Safari
+let voicesLoaded = false;
+
+function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        voicesLoaded = true;
+        console.log('Voix chargées:', voices.length);
+    }
+}
+
+// Charger immédiatement
+loadVoices();
+
+// Et recharger quand les voix changent (iOS)
+if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// Force le chargement après 500ms pour iOS
+setTimeout(loadVoices, 500);
+
 
         function formatOperation(op) {
             const opWords = {
