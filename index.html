@@ -68,20 +68,20 @@
         }
 
         // Fonction de synthèse vocale
-    function speak(text, onEnd) {
-    // Attendre que les voix soient chargées (important pour iOS)
-    if (!voicesLoaded) {
-        setTimeout(() => speak(text, onEnd), 100);
+        function speak(text, onEnd) {
+        // Attendre que les voix soient chargées (important pour iOS)
+        if (!voicesLoaded) {
+             setTimeout(() => speak(text, onEnd), 100);
         return;
-    }
+        }
     
-    if (window.speechSynthesis.speaking) {
+        if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
-    }
+        }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    utterance.rate = 1;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'fr-FR';
+        utterance.rate = 1;
     
     // Essayer de sélectionner une voix française selon le choix
     const voices = window.speechSynthesis.getVoices();
@@ -143,7 +143,7 @@
 
         
         // Charger les voix disponibles - FIX pour iOS/Safari
-let voicesLoaded = false;
+        let voicesLoaded = false;
 
 function loadVoices() {
     const voices = window.speechSynthesis.getVoices();
