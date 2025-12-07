@@ -75,7 +75,7 @@
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
-    utterance.rate = 0.9;
+    utterance.rate = 1;
     
     // Essayer de sélectionner une voix française selon le choix
     const voices = window.speechSynthesis.getVoices();
@@ -120,12 +120,12 @@
             if (femaleVoice) {
                 utterance.voice = femaleVoice;
             } else {
-                utterance.pitch = 1.1;  // Pitch aigu si pas de voix féminine
+                utterance.pitch = 1;  // Pitch aigu si pas de voix féminine
             }
         }
     } else {
         // Fallback sur pitch si pas de voix française du tout
-        utterance.pitch = state.voice === 'male' ? 1.1 : 0.6;
+        utterance.pitch = state.voice === 'male' ? 1 : 0.6;
     }
     
     if (onEnd) {
